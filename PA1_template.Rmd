@@ -22,7 +22,8 @@ library(dplyr)
  daily_data=activity_data%>%group_by(date)%>%summarize(daily_steps=sum(steps,na.rm=TRUE))
  library(ggplot2)
  g=ggplot(daily_data,aes(x=date, y=daily_steps))
- g+geom_col() + labs(title="Total steps by day", y="Count")
+g+geom_col() + labs(title="Total steps by day", y="Count")
+ 
 ```
   
 ##  What are the mean and median of total number of steps taken per day?
@@ -40,7 +41,8 @@ library(dplyr)
  interval_avg_data=activity_data%>%group_by(interval)%>%summarize(avg_steps=mean(steps,na.rm=TRUE))
  library(ggplot2)
  g=ggplot(interval_avg_data,aes(x=interval, y=avg_steps))
- g+geom_line() + labs(title="Average daily steps", y="Average Steps")
+ g+geom_line() + labs(title="Average daily stepsas a time series", y="Average Steps")
+  
 
 ```  
 Let us now find the interval with the  the highest daily average steps:
@@ -70,8 +72,9 @@ Plotting the updated data as a time-series.
 library(dplyr)
  daily_data_new=activity_data_new%>%group_by(date)%>%summarize(new_daily_steps=sum(new_steps,na.rm=TRUE))
  library(ggplot2)
- g=ggplot(daily_data_new,aes(x=date, y=new_daily_steps))
- g+geom_col() + labs(title="Total steps by day", y="Count")
+ g1=ggplot(daily_data_new,aes(x=date, y=new_daily_steps))
+ g1+geom_col() + labs(title="Total steps by day- imputed data", y="Count")
+ 
 ```
   
 ##  For comparison, What are the mean and median of total number of steps taken per day?
@@ -98,7 +101,9 @@ activity_data_final=cbind(activity_data_new, Status)%>%group_by(Status,interval)
 
 ```{r}
 g2=ggplot(activity_data_final,aes(x=interval, y=avg_steps))
- g2+geom_line() + facet_wrap(~Status,ncol=1)+labs(title="Average daily steps Weekdays vs weekends", y="Average Steps")
+g2+geom_line() + facet_wrap(~Status,ncol=1)+labs(title="Average daily steps Weekdays vs weekends", y="Average Steps")
+ 
+ 
 ```
 
 
