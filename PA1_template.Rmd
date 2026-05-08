@@ -1,25 +1,107 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: " Reproducible Research: Peer Assessment 1 "
+output: html_document
+date: "`r Sys.Date()`"
 ---
 
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE,message = FALSE)
+```
 ## Loading and preprocessing the data
+We first save the activity data into our working directory, load the data into R-studio and format the date column as a date. 
+```{r }
+library(dplyr)
+activity_data=read.csv("activity.csv")
+activity_data=as_tibble(activity_data)
+activity_data$date=as.Date(activity_data$date, "%Y-%m-%d")
+```
+We now display the histogram for the total numbers of daily steps.
+
+```{r }
+library(dplyr)
+ daily_data=activity_data%>%group_by(date)%>%summarize(daily_steps=sum(steps,na.rm=TRUE))
+ library(ggplot2)
+ g=ggplot(daily_data,aes(x=date, y=daily_steps))
+ g+geom_col() + labs(title="Total steps by day", y="Count")
+```
+  
+##  What are the mean and median of total number of steps taken per day?
+```{r}
+mean_daily_steps=mean(daily_data$daily_steps)
+median_daily_steps=median(daily_data$daily_steps)
+cat("The average number of daily steps is",mean_daily_steps, "\n")
+cat("The median number of daily steps is", median_daily_steps ,"\n")
+```
+      
+## What is the average daily activity pattern?    
+Below is the code that pull the data of average daily steps by interval and displays it as a time-series.
+```{r}
+library(dplyr)
+ interval_avg_data=activity_data%>%group_by(interval)%>%summarize(avg_steps=mean(steps,na.rm=TRUE))
+ library(ggplot2)
+ g=ggplot(interval_avg_data,aes(x=interval, y=avg_steps))
+ g+geom_line() + labs(title="Average daily steps", y="Average Steps")
+
+```  
+Let us now find the interval with the  the highest daily average steps:
+```{r}
+target=interval_avg_data$interval[interval_avg_data$avg_steps==max(interval_avg_data$avg_steps)]
+cat("The interval with the highest average daily steps is the one starting at",target,"\n")
+```  
+## Imputing the Missing Data
+We aim to replace the missing data with the daily average corresponding to that interval.
+The strategy is to merge the original data with the summary data on interval averaged and to override the NAs with the average number of steps.
+```{r}
+new_activity_data=merge(activity_data,interval_avg_data, by.x="interval", by.y="interval")
+new_steps=NULL
+for (k in 1:length(new_activity_data$date)){
+if (is.na(new_activity_data$steps[k])){new_steps[k]=new_activity_data$avg_steps[k]}
+  else {new_steps[k]=new_activity_data$steps[k]}
+}
+activity_data_new=cbind(new_activity_data[,c(1,3)],new_steps)
+```
+  
+## Histogram of the total dailty steps after imputing
+
+
+Plotting the updated data as a time-series.
+```{r}
+ 
+library(dplyr)
+ daily_data_new=activity_data_new%>%group_by(date)%>%summarize(new_daily_steps=sum(new_steps,na.rm=TRUE))
+ library(ggplot2)
+ g=ggplot(daily_data_new,aes(x=date, y=new_daily_steps))
+ g+geom_col() + labs(title="Total steps by day", y="Count")
+```
+  
+##  For comparison, What are the mean and median of total number of steps taken per day?
+```{r}
+mean_daily_steps_new=mean(daily_data_new$new_daily_steps)
+median_daily_steps_new=median(daily_data_new$new_daily_steps)
+cat("The average number of daily steps is",mean_daily_steps_new, "\n")
+cat("The median number of daily steps is", median_daily_steps_new ,"\n")
+```
+  
+## Preparing the data for the panel plot of weekdays vs weekends
+```{r}
+weekday=c("Monday","Tuesday","Wednesday","Thursday", "Friday")
+status=NULL
+for(k in 1:length(activity_data_new$date)){
+    if (weekdays(activity_data_new$date[k]) %in% weekday){  status[k]="Weekday"}
+    else  {status[k]="Weekend"}
+}
+Status=as.factor(status)
+activity_data_final=cbind(activity_data_new, Status)%>%group_by(Status,interval)%>% summarize(avg_steps=mean(new_steps))
+```  
+
+## The panel plot of Weekday vs Weekend
+
+```{r}
+g2=ggplot(activity_data_final,aes(x=interval, y=avg_steps))
+ g2+geom_line() + facet_wrap(~Status,ncol=1)+labs(title="Average daily steps Weekdays vs weekends", y="Average Steps")
+```
 
 
 
-## What is mean total number of steps taken per day?
 
-
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+ 
